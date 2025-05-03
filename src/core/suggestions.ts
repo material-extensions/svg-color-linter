@@ -1,4 +1,4 @@
-import { deltaE } from 'chroma-js';
+import chroma from 'chroma-js';
 import { ColorSuggestion } from './models';
 import { isValidColor, toHexColor } from './utils';
 
@@ -14,7 +14,7 @@ const getSuggestions = (
 
   const distances = palette
     .map((paletteColor) => ({
-      distance: deltaE(paletteColor, color),
+      distance: chroma.deltaE(paletteColor, color),
       color: paletteColor,
     }))
     .sort((a, b) => a.distance - b.distance);

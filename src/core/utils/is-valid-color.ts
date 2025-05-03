@@ -1,10 +1,10 @@
-import { valid } from 'chroma-js';
+import chroma from 'chroma-js';
 
 const isValidColor = (hexColor: string | undefined): boolean => {
   if (hexColor === undefined) {
     return false;
   }
-  return valid(hexColor);
+  return chroma.valid(hexColor);
 };
 
 export { isValidColor };
