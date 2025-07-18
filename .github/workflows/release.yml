@@ -36,7 +36,7 @@ jobs:
 
       - name: 📜 Generate changelog and release notes
         run: |
-          bunx changelogen --release --push
+          bunx changelogen --hideAuthorEmail --release --push
           bunx changelogen github release --token ${{ secrets.GITHUB_TOKEN }}
 
       - name: 📝 Get metadata

@@ -41,27 +41,24 @@
     "url": "git+https://github.com/material-extensions/svg-color-linter.git"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.8.3",
-    "@types/bun": "^1.1.6",
-    "@types/chroma-js": "^3.0.0",
-    "@types/glob": "^8.1.0",
+    "@biomejs/biome": "^2.1.2",
+    "@types/bun": "^1.2.18",
+    "@types/chroma-js": "^3.1.1",
+    "@types/glob": "^9.0.0",
     "@types/is-glob": "^4.0.4",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/minimist": "^1.2.5",
-    "changelogen": "^0.5.7",
-    "ts-jest": "^29.1.5",
-    "typescript": "^5.5.2"
+    "changelogen": "^0.6.2",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
-    "chroma-js": "^3.0.0",
-    "glob": "^11.0.0",
+    "chroma-js": "^3.1.2",
+    "glob": "^11.0.3",
     "is-glob": "^4.0.3",
-    "is-svg": "^6.0.0",
+    "is-svg": "^6.1.0",
     "js-yaml": "^4.1.0",
     "minimist": "^1.2.8"
-  },
-  "patchedDependencies": {
-    "changelogen@0.5.7": "patches/changelogen@0.5.7.patch"
   }
 }
