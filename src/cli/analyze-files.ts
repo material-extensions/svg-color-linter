@@ -6,9 +6,9 @@ import * as yaml from 'js-yaml';
 import { minimatch } from 'minimatch';
 import {
   Config,
-  Results,
   getColorsOfFile,
   getInvalidColorsOfFile,
+  Results,
 } from '../core';
 import { containsBase64EncodedString, readSvgFile } from './utils';
 
