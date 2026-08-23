@@ -7,7 +7,9 @@
     "strict": true,
     "skipLibCheck": true,
     "declaration": true,
-    "outDir": "./lib/"
+    "outDir": "./lib/",
+    "rootDir": "./src",
+    "types": ["bun-types"]
   },
   "include": ["./src"],
   "exclude": ["**/*.spec.ts"]
