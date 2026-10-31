@@ -1,3 +1,31 @@
+# Changelog
+
+## v3.1.0
+
+[compare changes](https://github.com/material-extensions/svg-color-linter/compare/v3.0.0...v3.1.0)
+
+### 🚀 Enhancements
+
+- Update dependencies ([eba2aff](https://github.com/material-extensions/svg-color-linter/commit/eba2aff))
+- Update tsconfig json ([1539882](https://github.com/material-extensions/svg-color-linter/commit/1539882))
+
+### 🩹 Fixes
+
+- **deps:** Update bun packages (major) ([#13](https://github.com/material-extensions/svg-color-linter/pull/13))
+- Restore Results export in analyze-files and update index exports ([e87b8cf](https://github.com/material-extensions/svg-color-linter/commit/e87b8cf))
+
+### 🏡 Chore
+
+- 🔒 use text-based Bun lockfile ([#12](https://github.com/material-extensions/svg-color-linter/pull/12))
+- Move package to organization ([96d3ce4](https://github.com/material-extensions/svg-color-linter/commit/96d3ce4))
+- Update dependencies and remove patch for changelog ([ad79d1d](https://github.com/material-extensions/svg-color-linter/commit/ad79d1d))
+- Update release workflow ([2a752b6](https://github.com/material-extensions/svg-color-linter/commit/2a752b6))
+
+### ❤️ Contributors
+
+- Philipp Kief ([@PKief](https://github.com/PKief))
+- Okinea Dev ([@okineadev](https://github.com/okineadev))
+
 ## v3.0.0
 
 [compare changes](https://github.com/material-extensions/svg-color-linter/compare/v2.0.3...v3.0.0)

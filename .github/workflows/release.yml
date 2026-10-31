@@ -2,55 +2,132 @@ name: Release + Publish
 
 on:
   workflow_dispatch:
+    inputs:
+      phase:
+        description: Prepare a release PR, or publish the version already merged into main
+        type: choice
+        options:
+          - prepare
+          - publish
+        default: prepare
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
 
     permissions:
       contents: write
+      pull-requests: write
       id-token: write
 
     steps:
-      - name: 🛎️ Checkout
+      - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # Required for fetching tags and generating release notes
           fetch-depth: 0
+          ref: main
 
-      - name: 🛠 Setup Platform
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version-file: ".bun-version"
+          bun-version-file: '.bun-version'
 
-      - name: 📦 Install dependencies
-        run: |
-          bun install --frozen-lockfile
-          bun add -g npm
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
-      - name: 🔧 Configure Git
+      - name: Configure Git
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git config --global push.followTags true
 
-      - name: 📜 Generate changelog and release notes
+      - name: Prepare version and changelog
+        if: inputs.phase == 'prepare'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          bunx changelogen --hideAuthorEmail --release --push
-          bunx changelogen github release --token ${{ secrets.GITHUB_TOKEN }}
+          node node_modules/changelog-machine/bin/cli.js --bump --resolve-contributors
+          bun install --lockfile-only
 
-      - name: 📝 Get metadata
+      - name: Get version
+        id: metadata
+        run: echo "version=$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Validate
         run: |
-          VERSION=$(jq -r '.version' package.json)
-          NAME=$(jq -r '.name' package.json)
-          DISPLAY_NAME=$(jq -r '.displayName' package.json)
+          bun run typecheck
+          bun run test
+          bun run lint
+          bun run build
+          bun audit
 
-          echo "VERSION=$VERSION"             >> $GITHUB_ENV
-          echo "NAME=$NAME"                   >> $GITHUB_ENV
-          echo "DISPLAY_NAME=$DISPLAY_NAME"   >> $GITHUB_ENV
+      - name: Open release PR
+        if: inputs.phase == 'prepare'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          BRANCH="release/v${VERSION}"
+          git switch -c "$BRANCH"
+          git add package.json bun.lock CHANGELOG.md
+          git commit -m "chore(release): v${VERSION}"
+          git push origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" \
+            --title "chore(release): v${VERSION}" \
+            --body "Review and merge the version and changelog changes, then run this workflow with phase=publish. Run the Build + Test workflow on this branch if required checks do not start automatically."
 
-      - name: ⚒️ Build
-        run: bun run build
+      - name: Verify publish version
+        if: inputs.phase == 'publish'
+        env:
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const changelog = readFileSync("CHANGELOG.md", "utf8");
+            const version = process.env.VERSION.replaceAll(".", "\\.");
+            if (!new RegExp(`^## .*v?${version}(?:\\s|$)`, "m").test(changelog)) {
+              throw new Error("Version is missing from CHANGELOG.md; merge a release PR first.");
+            }
+          '
+          npm view svg-color-linter versions --json > "$RUNNER_TEMP/published-versions.json"
+          node -e '
+            const versions = require(process.env.RUNNER_TEMP + "/published-versions.json");
+            if (versions.includes(process.env.VERSION)) {
+              throw new Error("This version is already published. Prepare and merge a new release first.");
+            }
+          '
+          if git rev-parse "refs/tags/v${VERSION}" >/dev/null 2>&1; then
+            test "$(git rev-list -n 1 "v${VERSION}")" = "$(git rev-parse HEAD)"
+          fi
 
-      - name: 🌐 Publish to NPM Registry
+      - name: Create release tag
+        if: inputs.phase == 'publish'
+        env:
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          if ! git rev-parse "refs/tags/v${VERSION}" >/dev/null 2>&1; then
+            git tag -a "v${VERSION}" -m "v${VERSION}"
+            git push origin "refs/tags/v${VERSION}"
+          fi
+
+      - name: Publish to npm
+        if: inputs.phase == 'publish'
         run: npm publish --provenance --access public
+
+      - name: Create GitHub release
+        if: inputs.phase == 'publish'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          gh release create "v${VERSION}" --verify-tag \
+            --title "v${VERSION}" --generate-notes
