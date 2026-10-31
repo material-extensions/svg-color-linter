@@ -1,15 +1,6 @@
 name: Release + Publish
 
-on:
-  workflow_dispatch:
-    inputs:
-      phase:
-        description: Prepare a release PR, or publish the version already merged into main
-        type: choice
-        options:
-          - prepare
-          - publish
-        default: prepare
+on: [workflow_dispatch]
 
 concurrency:
   group: release
@@ -22,15 +13,22 @@ jobs:
 
     permissions:
       contents: write
-      pull-requests: write
       id-token: write
 
     steps:
+      - name: Create release-bot token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          app-id: ${{ vars.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           ref: main
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -50,8 +48,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: Prepare version and changelog
-        if: inputs.phase == 'prepare'
+      - name: Update version and changelog
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -70,61 +67,19 @@ jobs:
           bun run build
           bun audit
 
-      - name: Open release PR
-        if: inputs.phase == 'prepare'
+      - name: Commit and push release atomically
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.metadata.outputs.version }}
         run: |
-          BRANCH="release/v${VERSION}"
-          git switch -c "$BRANCH"
           git add package.json bun.lock CHANGELOG.md
           git commit -m "chore(release): v${VERSION}"
-          git push origin "$BRANCH"
-          gh pr create --base main --head "$BRANCH" \
-            --title "chore(release): v${VERSION}" \
-            --body "Review and merge the version and changelog changes, then run this workflow with phase=publish. Run the Build + Test workflow on this branch if required checks do not start automatically."
-
-      - name: Verify publish version
-        if: inputs.phase == 'publish'
-        env:
-          VERSION: ${{ steps.metadata.outputs.version }}
-        run: |
-          node --input-type=module -e '
-            import { readFileSync } from "node:fs";
-            const changelog = readFileSync("CHANGELOG.md", "utf8");
-            const version = process.env.VERSION.replaceAll(".", "\\.");
-            if (!new RegExp(`^## .*v?${version}(?:\\s|$)`, "m").test(changelog)) {
-              throw new Error("Version is missing from CHANGELOG.md; merge a release PR first.");
-            }
-          '
-          npm view svg-color-linter versions --json > "$RUNNER_TEMP/published-versions.json"
-          node -e '
-            const versions = require(process.env.RUNNER_TEMP + "/published-versions.json");
-            if (versions.includes(process.env.VERSION)) {
-              throw new Error("This version is already published. Prepare and merge a new release first.");
-            }
-          '
-          if git rev-parse "refs/tags/v${VERSION}" >/dev/null 2>&1; then
-            test "$(git rev-list -n 1 "v${VERSION}")" = "$(git rev-parse HEAD)"
-          fi
-
-      - name: Create release tag
-        if: inputs.phase == 'publish'
-        env:
-          VERSION: ${{ steps.metadata.outputs.version }}
-        run: |
-          if ! git rev-parse "refs/tags/v${VERSION}" >/dev/null 2>&1; then
-            git tag -a "v${VERSION}" -m "v${VERSION}"
-            git push origin "refs/tags/v${VERSION}"
-          fi
+          git tag -a "v${VERSION}" -m "v${VERSION}"
+          git push --atomic origin HEAD:refs/heads/main "refs/tags/v${VERSION}"
 
       - name: Publish to npm
-        if: inputs.phase == 'publish'
         run: npm publish --provenance --access public
 
       - name: Create GitHub release
-        if: inputs.phase == 'publish'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.metadata.outputs.version }}
