@@ -1,5 +1,21 @@
 # Changelog
 
+## v3.1.2
+
+[compare changes](https://github.com/material-extensions/svg-color-linter/compare/v3.1.1...v3.1.2)
+
+### Fixes
+
+- Declare package types entry point ([a312d1da](https://github.com/material-extensions/svg-color-linter/commit/a312d1dab6affd1ac866df2b10b0bab8a40ecc42))
+
+### Chores
+
+- Use GitHub App client ID for release token ([5bddfd29](https://github.com/material-extensions/svg-color-linter/commit/5bddfd2997fa3c83948964f3324196b723c8746b))
+
+### Contributors
+
+- Philipp Kief ([@PKief](https://github.com/PKief))
+
 ## v3.1.1
 
 [compare changes](https://github.com/material-extensions/svg-color-linter/compare/v3.1.0...v3.1.1)
