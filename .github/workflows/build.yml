@@ -1,6 +1,9 @@
 name: Build + Test
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -12,14 +15,14 @@ jobs:
       - name: 🛠 Setup Platform
         uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2
         with:
-          bun-version-file: ".bun-version"
+          bun-version-file: '.bun-version'
 
       - name: 📦 Install dependencies
-        run: |
-          bun install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: ⚒️ Test + Build
         run: |
+          bun run typecheck
           bun run test
           bun run lint
-          npm run build
+          bun run build
