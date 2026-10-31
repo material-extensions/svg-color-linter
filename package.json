@@ -4,6 +4,7 @@
   "version": "3.1.1",
   "description": "Linting tool to check if SVG files use only colors of a given color palette",
   "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "module": "./lib/index.js",
   "bin": {
     "svg-color-linter": "bin/cli.js"
