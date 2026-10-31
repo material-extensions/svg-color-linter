@@ -1,5 +1,22 @@
 # Changelog
 
+## v3.1.1
+
+[compare changes](https://github.com/material-extensions/svg-color-linter/compare/v3.1.0...v3.1.1)
+
+### Fixes
+
+- Resolve security findings ([c221c22a](https://github.com/material-extensions/svg-color-linter/commit/c221c22a505b31ddb4502204c9d6e2308bf60cce))
+- Repair release history and migrate to changelog-machine ([#15](https://github.com/material-extensions/svg-color-linter/pull/15))
+
+### Chores
+
+- Update workflow dependencies ([4221cf8c](https://github.com/material-extensions/svg-color-linter/commit/4221cf8c6a2a49b6d37343f2b88ccd7a4757549c))
+
+### Contributors
+
+- Philipp Kief ([@PKief](https://github.com/PKief))
+
 ## v3.1.0
 
 [compare changes](https://github.com/material-extensions/svg-color-linter/compare/v3.0.0...v3.1.0)
