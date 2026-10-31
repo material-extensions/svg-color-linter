@@ -9,8 +9,7 @@
     "declaration": true,
     "outDir": "./lib/",
     "rootDir": "./src",
-    "types": ["bun-types"]
+    "types": ["bun", "node"]
   },
-  "include": ["./src"],
-  "exclude": ["**/*.spec.ts"]
+  "include": ["./src"]
 }
